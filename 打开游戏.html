@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#090d0e" />
+  <title>国民尚未决定｜完整游戏重制版</title>
+  <meta name="description" content="《国民尚未决定》完整游戏重制版：十二日竞选、战略判断、卡牌连携、选区争夺与牌库成长。" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23090d0e'/%3E%3Crect x='9' y='9' width='46' height='46' fill='%23d9d8c2'/%3E%3Cpath d='M18 33h28M32 18v28' stroke='%23525f50' stroke-width='7'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main id="game" class="game-shell">
+    <div id="viewport" class="viewport" aria-live="polite">
+      <section id="coverScene" class="scene cover-scene is-active" aria-label="游戏封面">
+        <img src="./assets/pixel-cover-female-anchor.jpg" alt="阴暗的像素电视演播厅，两名候选人在女主持人两侧等待辩论" draggable="false" />
+        <div class="cover-shade"></div>
+        <nav class="main-menu" aria-label="主菜单">
+          <button id="startButton" class="menu-button"><span>▶</span>开始竞选</button>
+          <button class="menu-button" disabled><span>　</span>读取档案</button>
+        </nav>
+        <p class="start-hint">点击“开始竞选”启用声音</p>
+      </section>
+
+      <section id="deskScene" class="scene desk-scene" aria-label="候选人参选确认书">
+        <img class="desk-art" src="./assets/registration-desk-clean-v3.jpg" alt="选举机关柜台上的确认书和印泥" draggable="false" />
+        <canvas id="formCanvas" class="form-copy" aria-label="参选确认书正文"></canvas>
+        <button id="stamp" class="stamp" aria-label="拿起机关印章">
+          <img src="./assets/stamp-clean-v4.png" alt="" draggable="false" />
+        </button>
+        <div id="paperTarget" class="paper-target" aria-label="确认书纸张区域"></div>
+        <div id="sealResult" class="seal-result" aria-hidden="true">准予参选</div>
+        <div id="wrongSeal" class="wrong-seal" aria-hidden="true">位置不符</div>
+      </section>
+
+      <section id="endScene" class="scene select-scene" aria-label="选择候选人">
+        <header class="candidate-header">
+          <div><small>中央选举管理委员会 · 人事档案科</small><b>选择候选人</b></div>
+          <span id="candidateCounter">档案 01 / 12</span>
+        </header>
+        <div id="candidateStage" class="candidate-stage">
+          <button id="prevCandidate" class="reel-arrow" aria-label="上一名候选人">◀</button>
+          <article class="candidate-dossier">
+            <div class="portrait-panel">
+              <div class="portrait-frame">
+                <img id="candidatePortrait" class="candidate-portrait" src="" alt="" draggable="false" />
+                <span id="candidateNumber" class="candidate-number">01</span>
+                <i id="classifiedMark" class="classified-mark" hidden>机密</i>
+              </div>
+              <div class="identity-plate">
+                <h2 id="candidateAlias">大数学家</h2>
+                <p id="candidateReal">登记代号 K-01</p>
+              </div>
+            </div>
+            <div class="candidate-details">
+              <section><small>竞选路线</small><b id="candidateRoute"></b></section>
+              <section><small>招牌技能</small><b id="candidateSkillName"></b><p id="candidateSkillText"></p></section>
+              <section><small>致命弱点</small><b id="candidateWeakness"></b></section>
+              <section class="ally-file"><small>关系援护</small><b id="candidateAlly"></b><p id="candidateAllyText"></p></section>
+            </div>
+          </article>
+          <button id="nextCandidate" class="reel-arrow" aria-label="下一名候选人">▶</button>
+        </div>
+        <nav id="candidateReel" class="candidate-reel" aria-label="候选人卷轴"></nav>
+        <footer class="candidate-footer">
+          <button id="returnButton" class="archive-button">返回封面</button>
+          <div id="candidateChoice" class="candidate-choice"><small>当前档案</small><b>大数学家</b><span>使用左右按钮翻阅档案</span><em id="candidateMotto">“每一张票，最终都会找到正确的位置。”</em></div>
+          <button id="confirmCandidate" class="archive-button confirm">选择此人</button>
+        </footer>
+      </section>
+
+      <section id="matchScene" class="scene match-scene" aria-label="随机分配竞选对手">
+        <header class="process-header">
+          <div><small>中央选举管理委员会 · 对阵编排室</small><b>竞选对阵分配</b></div>
+          <span>不接受指定对手</span>
+        </header>
+        <div class="match-board">
+          <article class="match-file player-file">
+            <small>已登记候选人</small>
+            <img id="matchPlayerPortrait" src="" alt="" draggable="false" />
+            <b id="matchPlayerAlias">候选人</b>
+            <span>申请已受理</span>
+          </article>
+          <section class="draw-machine">
+            <div class="difficulty-panel">
+              <small>第一步　选择播出规格</small>
+              <div id="difficultyButtons" class="difficulty-buttons">
+                <button type="button" data-difficulty="low"><b>低</b><span>地方台试播</span></button>
+                <button type="button" data-difficulty="mid"><b>中</b><span>全国直播</span></button>
+                <button type="button" data-difficulty="high"><b>高</b><span>紧急特别节目</span></button>
+              </div>
+            </div>
+            <div id="drawScreen" class="draw-screen">
+              <div class="television-noise"></div>
+              <img id="drawPortrait" src="" alt="" hidden draggable="false" />
+              <strong id="drawAlias">对手待分配</strong>
+              <p id="drawMessage">先选择难度，再启动摇号机。</p>
+            </div>
+            <button id="drawLever" class="draw-lever" type="button" disabled><i></i><b>拉下摇号杆</b></button>
+            <small class="no-appeal">对阵一经分配，不接受申诉</small>
+          </section>
+          <article id="opponentFile" class="match-file opponent-file is-unknown">
+            <small>指定竞选对手</small>
+            <img id="matchOpponentPortrait" src="" alt="" draggable="false" />
+            <b id="matchOpponentAlias">██████</b>
+            <span id="opponentWarning">档案尚未送达</span>
+          </article>
+        </div>
+        <footer class="match-footer">
+          <button id="backToCandidates" class="archive-button">返回候选人档案</button>
+          <button id="appealButton" class="archive-button" disabled>提交异议</button>
+          <button id="acceptMatch" class="archive-button confirm" disabled>接受安排</button>
+        </footer>
+      </section>
+
+      <section id="loadingScene" class="scene loading-scene" aria-label="直播信号接入程序">
+        <header class="process-header">
+          <div><small>国家电视转播中心 · 一号信号室</small><b>直播接入程序</b></div>
+          <span id="onAirLamp" class="on-air-lamp">● OFF AIR</span>
+        </header>
+        <div class="loading-layout">
+          <section class="versus-panel">
+            <div class="versus-strip">
+              <div><img id="loadingPlayerPortrait" src="" alt="" /><span><small>己方候选人</small><b id="loadingPlayerAlias"></b></span></div>
+              <strong>VS</strong>
+              <div><img id="loadingOpponentPortrait" src="" alt="" /><span><small>指定对手</small><b id="loadingOpponentAlias"></b></span></div>
+            </div>
+            <div class="loading-actions"><button id="playerIntelButton" type="button">查看己方作战摘要</button><button id="opponentIntelButton" type="button">扫描对手公开档案</button></div>
+          </section>
+          <section class="signal-console">
+            <div id="signalScreen" class="signal-screen">
+              <img id="signalBroadcastImage" class="signal-broadcast-image" src="./assets/pixel-cover-female-anchor.jpg" alt="选举直播间画面" />
+              <div id="signalSnow" class="signal-snow"></div>
+              <b id="signalLabel">无信号</b>
+              <small>CH 08 · ELECTION LIVE</small>
+            </div>
+            <div class="tuning-console">
+              <p>左右拖动旋钮，将信号调进红色区域。</p>
+              <div id="tuningTrack" class="tuning-track">
+                <span class="tuning-zone"></span>
+                <button id="tuningKnob" class="tuning-knob" type="button" role="slider" aria-label="电视信号校准旋钮" aria-valuemin="0" aria-valuemax="100" aria-valuenow="16"></button>
+              </div>
+            </div>
+          </section>
+          <ol id="loadingChecklist" class="loading-checklist">
+            <li>正在调取双方档案……</li>
+            <li>正在分配电视台席位……</li>
+            <li>正在校准民意计数器……</li>
+            <li>正在登记未申报运输车辆……</li>
+            <li>正在通知国民开始犹豫……</li>
+          </ol>
+        </div>
+        <footer class="loading-footer">
+          <p id="loadingHint">设备自检中，请同时校准电视信号。</p>
+          <button id="connectLive" class="archive-button confirm" disabled>接通直播</button>
+        </footer>
+        <div id="broadcastReady" class="broadcast-ready" hidden>
+          <small>● ON AIR</small>
+          <b>直播信号已经接通</b>
+          <p>双方不得离席。正式对战将在下一阶段开放。</p>
+        </div>
+      </section>
+
+      <section id="battleScene" class="scene battle-scene" aria-label="电视竞选对战">
+        <header class="battle-header">
+          <div><small id="roundLabel">竞选日 01 / 12</small><b id="segmentLabel">你的行动阶段</b></div>
+          <div class="support-meter" aria-label="双方支持率">
+            <span id="playerSupportText">50%</span>
+            <div><i id="playerSupportFill"></i><em></em></div>
+            <span id="opponentSupportText">50%</span>
+          </div>
+          <div class="topic-file"><small>本轮议题</small><b id="topicLabel">候选人印象</b></div>
+        </header>
+        <div class="battle-main">
+          <article id="playerActor" class="battle-actor player-actor">
+            <img id="battlePlayerPortrait" src="" alt="" />
+            <b id="battlePlayerAlias"></b>
+            <span id="playerFloat" class="support-float"></span>
+            <i id="playerRisk" class="risk-lamp">信誉 6/6</i>
+          </article>
+          <section class="live-studio">
+            <div id="regionMonitor" class="region-monitor" aria-label="地区民意地图">
+              <button type="button" data-region="首都圈">首都圈·34席</button>
+              <button type="button" data-region="江南">江南·18席</button>
+              <button type="button" data-region="忠清">忠清·15席</button>
+              <button type="button" data-region="岭南">岭南·25席</button>
+              <button type="button" data-region="济州">济州·8席</button>
+            </div>
+            <div class="played-cards">
+              <div id="playerPlayedCard" class="played-card"><small>己方竞选公示</small></div>
+              <div class="host-window">
+                <img src="./assets/pixel-cover-female-anchor.jpg" alt="电视竞选女主持人" />
+                <p id="hostLine">双方候选人，请准备。</p>
+              </div>
+              <div id="opponentPlayedCard" class="played-card"><small>对手竞选公示</small></div>
+            </div>
+          </section>
+          <article id="opponentActor" class="battle-actor opponent-actor">
+            <img id="battleOpponentPortrait" src="" alt="" />
+            <b id="battleOpponentAlias"></b>
+            <span id="opponentFloat" class="support-float"></span>
+            <i id="opponentRisk" class="risk-lamp">信誉 6/6</i>
+          </article>
+        </div>
+        <div class="battle-controls">
+          <div class="special-controls">
+            <button id="skillButton" type="button"><small>人物主动技</small><b id="skillButtonName">机密</b><em id="passiveText">被动：档案待解锁</em></button>
+            <button id="allyButton" type="button"><small>援护电话</small><b id="allyButtonName">无人接听</b></button>
+          </div>
+          <div id="hand" class="card-hand" aria-label="当前手牌"></div>
+          <aside class="battle-intel">
+            <div id="strategyButtons" class="strategy-buttons" aria-label="本日竞选策略">
+              <button type="button" data-strategy="attack"><b>强攻</b><small>攻势民意 +2</small></button>
+              <button type="button" data-strategy="guard"><b>稳守</b><small>获得一次护盾</small></button>
+              <button type="button" data-strategy="organize"><b>组织</b><small>摸一张牌</small></button>
+            </div>
+            <p id="intentHint" class="intent-hint">摸取起始手牌，准备竞选。</p>
+            <div class="battle-readout"><span id="momentumText">行动点 2/2</span><span id="tacticPreview">牌堆 24 · 弃牌 0</span></div>
+            <button id="endTurnButton" class="end-turn-button" type="button">结束行动，交给对手</button>
+          </aside>
+        </div>
+
+        <div id="reactionOverlay" class="bureau-overlay reaction-overlay" hidden>
+          <article>
+            <small>直播现场 · 紧急响应</small>
+            <h2 id="reactionTitle">对手发动竞选攻势</h2>
+            <p id="reactionText">你可以打出一张“紧急回应”，否则信誉受损。</p>
+            <div id="reactionCards" class="reaction-cards"></div>
+            <button id="takeHitButton" class="archive-button">不作回应，承受后果</button>
+          </article>
+        </div>
+
+        <div id="draftOverlay" class="bureau-overlay draft-overlay" hidden>
+          <article>
+            <small>地区竞选办公室 · 新资源入库</small>
+            <h2 id="draftTitle">选择一张牌加入本局牌组</h2>
+            <p>每夺下一个地区，你的竞选机器都会真正变强。</p>
+            <div id="draftCards" class="draft-cards"></div>
+          </article>
+        </div>
+
+        <div id="tutorialChoice" class="bureau-overlay tutorial-choice" hidden>
+          <article>
+            <small>中央选举管理委员会</small>
+            <h2>候选人临时培训录像　第04号</h2>
+            <p>培训带将说明摸牌、行动点、攻势与回应。未完成培训者亦可参选，后果自行承担。</p>
+            <div><button id="startTutorial" class="archive-button confirm">播放培训带</button><button id="skipTutorial" class="archive-button">跳过并承担后果</button></div>
+          </article>
+        </div>
+
+        <div id="tutorialGuide" class="tutorial-guide" hidden>
+          <b id="tutorialTitle">培训 1 / 4</b><p id="tutorialText">请按要求出牌。</p>
+        </div>
+
+        <div id="crisisOverlay" class="bureau-overlay crisis-overlay" hidden>
+          <article>
+            <small>未经候选人同意的特别环节</small>
+            <h2 id="crisisTitle">红色档案</h2>
+            <p id="crisisText"></p>
+            <div class="crisis-actions">
+              <button id="crisisApologize" class="archive-button">公开道歉</button>
+              <button id="crisisDeny" class="archive-button">强硬否认</button>
+              <button id="crisisDistract" class="archive-button">制造更大的新闻</button>
+            </div>
+          </article>
+        </div>
+
+        <div id="roundResolution" class="round-resolution" hidden>
+          <div class="resolution-impact"><b id="resolutionStamp">爆料命中</b><span id="resolutionDelta">-7%</span></div>
+          <article>
+            <small id="resolutionRound">第 01 回合结算</small>
+            <h2 id="resolutionTitle">爆料打断演讲</h2>
+            <p id="resolutionDetail"></p>
+            <p id="resolutionRegion"></p>
+            <button id="nextRoundButton" class="archive-button confirm">确认结果，进入下一回合</button>
+          </article>
+        </div>
+      </section>
+
+      <section id="tallyScene" class="scene tally-scene" aria-label="全国开票中心">
+        <header class="process-header"><div><small>国家电视转播中心 · 全国开票部</small><b>全国开票中心</b></div><span id="tallyCount">已开票 0 / 5</span></header>
+        <div class="tally-layout">
+          <article class="tally-candidate"><img id="tallyPlayerPortrait" src="" alt="" /><b id="tallyPlayerAlias"></b><span id="tallyPlayerScore">等待开票</span></article>
+          <section class="ballot-center">
+            <p id="tallyHostLine">请依次打开地区信封。</p>
+            <div id="regionEnvelopes" class="region-envelopes tally-map" aria-label="全国地区开票地图"></div>
+            <button id="finalResultButton" class="archive-button confirm" hidden>公布最终结果</button>
+          </section>
+          <article class="tally-candidate"><img id="tallyOpponentPortrait" src="" alt="" /><b id="tallyOpponentAlias"></b><span id="tallyOpponentScore">等待开票</span></article>
+        </div>
+      </section>
+
+      <section id="endingScene" class="scene ending-scene" aria-label="竞选结局">
+        <header class="process-header"><div><small>中央选举管理委员会 · 最终档案</small><b id="endingHeader">国民终于决定</b></div><span id="endingScore">50% / 50%</span></header>
+        <div id="victoryEnding" class="ending-body victory-ending" hidden>
+          <div class="victory-stage"><img id="endingWinnerPortrait" src="" alt="" /><b id="endingWinnerAlias"></b><p id="speechOutput">请选择胜选演说。</p></div>
+          <section class="speech-console"><small>胜选提词器</small><div id="speechChoices" class="speech-choices"></div><label>将身份推至“当选人”<input id="victoryFader" type="range" min="0" max="100" value="0" disabled /></label><button id="printNewspaper" class="archive-button confirm" disabled>转动印刷机</button></section>
+        </div>
+        <div id="defeatEnding" class="ending-body defeat-ending" hidden>
+          <div class="dark-stage"><img id="endingLoserPortrait" src="" alt="" /><b id="endingLoserAlias"></b><p>麦克风已经关闭。</p></div>
+          <section><small>请选择离场方式</small><div class="defeat-actions"><button data-defeat="承认败选">承认败选</button><button data-defeat="要求重新计票">要求重新计票</button><button data-defeat="拒绝离开演播室">拒绝离开演播室</button></div></section>
+        </div>
+        <article id="newspaper" class="newspaper" hidden>
+          <header><small>国民日报 · 特别号</small><span>号外　全国开票完成</span></header>
+          <div class="newspaper-frontpage">
+            <section><i id="newspaperKicker">大选结果</i><h2 id="newspaperHeadline">国民终于决定</h2><p id="newspaperBody"></p><b id="newspaperVerdict">竞选成功</b></section>
+            <figure><img id="newspaperPortrait" src="" alt="" /><figcaption id="newspaperCaption">候选人发表最终讲话</figcaption></figure>
+          </div>
+          <footer><button id="rematchButton" class="archive-button confirm">使用同一候选人再战</button><button id="changeCandidateButton" class="archive-button">返回候选人档案</button></footer>
+        </article>
+      </section>
+
+      <div id="subtitleBox" class="subtitle-box" hidden>
+        <b id="speaker">主持人</b>
+        <p id="subtitle"></p>
+      </div>
+      <button id="soundButton" class="sound-button" aria-label="静音" aria-pressed="false">声音：开</button>
+      <div id="blackout" class="blackout" aria-hidden="true"></div>
+      <div class="scanlines" aria-hidden="true"></div>
+    </div>
+  </main>
+  <script src="./app.js"></script>
+</body>
+</html>
